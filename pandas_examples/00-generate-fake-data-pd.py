@@ -41,5 +41,5 @@ data = generate_fake_data(num_records)
 columns = ['order_id', 'order_date', 'customer_id', 'customer_name', 'product_id', 'product_name', 'category', 'quantity', 'price', 'total']
 df = pd.DataFrame(data, columns=columns)
 
-df.to_csv('data/sales_data.csv')
+df.to_csv('data/sales_data_pd.csv')
 print('CSV file with fake sales data has been created.')
