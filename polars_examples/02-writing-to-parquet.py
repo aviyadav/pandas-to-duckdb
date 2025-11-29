@@ -4,7 +4,7 @@ from timeit import default_timer as timer
 
 start = timer()
 df_polars = pl.read_csv('data/sales_data_pl.csv')
-df_polars.write_parquet('data/sales_data_pandas.parquet')
+df_polars.write_parquet('data/sales_data_polars.parquet')
 print("Polars: Writing data to Parquet", timer()-start,'seconds')
 
 start = timer()

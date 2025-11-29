@@ -1,45 +1,81 @@
 import pandas as pd
 import numpy as np
 from faker import Faker
-import random
+from datetime import datetime, timedelta
+import sys
 import os
-from datetime import datetime
+
+# Add parent directory to path to import utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from polars_examples.utils import time_it
 
 fake = Faker()
-
 Faker.seed(0)
-random.seed(0)
+np.random.seed(0)
 
+@time_it
 def generate_fake_data(num_records):
-    data = []
-    start_date = datetime.strptime('2023-01-01', '%Y-%m-%d')
-    end_date = datetime.strptime('2023-12-31', '%Y-%m-%d')
+    # Pre-generate unique values to sample from
+    print("Generating reference data...")
+    num_customers = 100_000
+    customer_ids = np.random.randint(100, 1000, size=num_customers)
+    customer_names = np.array([fake.name() for _ in range(num_customers)])
+    
+    # 10 products
+    product_ids = np.arange(200, 210)
+    product_names = np.array(['Laptop', 'Smartphone', 'Desk', 'Chair', 'Monitor', 'Printer', 'Paper', 'Pen', 'Notebook', 'Coffee Maker'])
+    
+    # Generate main data using numpy for speed
+    print(f"Generating {num_records} rows...")
+    order_ids = np.arange(num_records)
+    
+    # Dates
+    start_date_np = np.datetime64('2023-01-01')
+    days_range = 365
+    random_days = np.random.randint(0, days_range, size=num_records)
+    order_dates_np = start_date_np + random_days.astype('timedelta64[D]')
+    
+    # Customer selection
+    customer_indices = np.random.randint(0, num_customers, size=num_records)
+    final_customer_ids = customer_ids[customer_indices]
+    final_customer_names = customer_names[customer_indices]
+    
+    # Product selection
+    product_indices = np.random.randint(0, len(product_names), size=num_records)
+    final_product_ids = product_ids[product_indices]
+    final_product_names = product_names[product_indices]
+    
+    # Quantities and Prices
+    quantities = np.random.randint(1, 11, size=num_records)
+    prices = np.round(np.random.uniform(1.99, 999.99, size=num_records), 2)
+    
+    # Category logic
+    electronics_items = {'Laptop', 'Smartphone', 'Monitor', 'Printer', 'Coffee Maker'}
+    is_electronics = np.isin(final_product_names, list(electronics_items))
+    categories = np.where(is_electronics, 'Electronics', 'Office')
+    
+    # Calculate total
+    totals = np.round(prices * quantities, 2)
+    
+    print("Constructing DataFrame...")
+    df = pd.DataFrame({
+        'order_id': order_ids,
+        'order_date': order_dates_np,
+        'customer_id': final_customer_ids,
+        'customer_name': final_customer_names,
+        'product_id': final_product_ids,
+        'product_name': final_product_names,
+        'category': categories,
+        'quantity': quantities,
+        'price': prices,
+        'total': totals
+    })
+    
+    return df
 
-    for _ in range(num_records):
-        order_id = _
-        order_date = fake.date_between(start_date=start_date, end_date=end_date).strftime('%Y-%m-%d')
-        customer_id = fake.random_int(min=100, max=999)
-        customer_name = fake.name()
-        product_id = fake.random_int(min=200, max=210)
-        product_name = random.choice(
-            ['Laptop', 'Smartphone', 'Desk', 'Chair', 'Monitor', 'Printer', 'Paper', 'Pen', 'Notebook', 'Coffee Maker'])
-        category = 'Electronics' if product_name in ['Laptop', 'Smartphone', 'Monitor', 'Printer',
-                                                     'Coffee Maker'] else 'Office'
-        quantity = fake.random_int(min=1, max=10)
-        price = round(random.uniform(1.99, 999.99), 2)
-        total = round(price * quantity, 2)
-        data.append(
-            [order_id, order_date, customer_id, customer_name, product_id, product_name, category, quantity, price,
-             total])
-    return data
+num_records = 10_000_000
 
-num_records = 10000000
+df = generate_fake_data(num_records)
 
-data = generate_fake_data(num_records)
-
-# Create DataFrame
-columns = ['order_id', 'order_date', 'customer_id', 'customer_name', 'product_id', 'product_name', 'category', 'quantity', 'price', 'total']
-df = pd.DataFrame(data, columns=columns)
-
-df.to_csv('data/sales_data_pd.csv')
+df.to_csv('data/sales_data_pd.csv', index=False)
 print('CSV file with fake sales data has been created.')

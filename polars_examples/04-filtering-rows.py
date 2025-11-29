@@ -3,7 +3,7 @@ import duckdb
 from timeit import default_timer as timer
 
 # File path to your Parquet file
-polars_parquet_file_path = 'data//sales_data_pandas.parquet'
+polars_parquet_file_path = 'data//sales_data_polars.parquet'
 
 duckdb_parquet_file_path = 'data//sales_data_duckdb.parquet'
 

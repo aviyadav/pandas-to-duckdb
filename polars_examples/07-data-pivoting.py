@@ -3,7 +3,7 @@ import duckdb
 from timeit import default_timer as timer
 
 # File path to your Parquet file
-polars_parquet_file_path = 'data//sales_data_pandas.parquet'
+polars_parquet_file_path = 'data//sales_data_polars.parquet'
 
 duckdb_parquet_file_path = 'data//sales_data_duckdb.parquet'
 
@@ -11,7 +11,7 @@ duckdb_parquet_file_path = 'data//sales_data_duckdb.parquet'
 df_polars = pl.read_parquet(polars_parquet_file_path)
 
 start = timer()
-result_polars = df_polars.pivot(values='total', index='order_date', columns='product_name', aggregate_function='sum').fill_null(0)
+result_polars = df_polars.pivot(values='total', index='order_date', on='product_name', aggregate_function='sum').fill_null(0)
 print("Polars: Data pivoting", timer()-start,'seconds')
 
 # DuckDB
